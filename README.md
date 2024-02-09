@@ -4,8 +4,8 @@ This work is not finished yet, I am lazy to do now lol
 
 ## Dependencies
 
-backend using with `https://github.com/NickP-real/itsc-dotnet-graphql`
-design from `https://www.figma.com/file/Y9wRXSnFX4sQJp6cIOj6RB/Book-Management-System?type=design&node-id=178-444&mode=design&t=4yEf7mcaYpg5sWVy-0`
+Backend using with <https://github.com/NickP-real/itsc-dotnet-graphql>
+Design from <https://www.figma.com/file/Y9wRXSnFX4sQJp6cIOj6RB/Book-Management-System?type=design&node-id=178-444&mode=design&t=4yEf7mcaYpg5sWVy-0>
 
 ## Customize configuration
 
