@@ -1,21 +1,33 @@
 <script setup lang="ts">
 import { getIp } from '@/composables/ipUtils'
+import type { Comment } from '@/composables/type'
 import useAddArticleMutate from '@/composables/useAddArticleMutate'
+import useAddCommentMutate from '@/composables/useAddCommentMutate'
 import useArticleByIdReadMoreQuery from '@/composables/useArticleByIdReadMoreQuery'
-import { computed, onBeforeMount, onMounted, reactive, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import useUpdateArticleByIdMutate from '@/composables/useUpdateArticleByIdMutate'
+import useUpdateCommentByIdMutate from '@/composables/useUpdateCommentByIdMutate'
+import { onBeforeMount, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const { mode } = defineProps<{
   mode: 'Create' | 'Update'
 }>()
+
+const route = useRoute()
+const router = useRouter()
+
+const { mutate: addArticle } = useAddArticleMutate()
+const { mutate: addComment } = useAddCommentMutate()
+const { mutate: updateArticleById } = useUpdateArticleByIdMutate()
+const { mutate: updateCommentById } = useUpdateCommentByIdMutate()
 
 type FormData = {
   title: string
   imageUrl: string
   authorName: string
   description: string
-  createdDate: Date | null
-  comments: string[]
+  createdDate: string
+  comments: Comment[]
 }
 
 const formData = ref<FormData>({
@@ -23,7 +35,7 @@ const formData = ref<FormData>({
   imageUrl: '',
   authorName: '',
   description: '',
-  createdDate: null,
+  createdDate: '',
   comments: []
 })
 
@@ -31,48 +43,88 @@ if (formData.value.comments.length === 0) addNewComment()
 
 async function onSubmit() {
   const { title, imageUrl, authorName, description, comments, createdDate } = formData.value
-  // filter empty comments
-  const filteredComments = comments.filter((comment) => comment.trim() !== '')
 
-  const ip = await getIp()
+  const ipAddress = await getIp()
   if (mode === 'Update') {
+    const articleId = parseInt(route.params.articleId.toString(), 10)
+    const { comments, ...formValue } = formData.value
+
+    await updateArticleById({
+      articleId,
+      articleUpdateRequest: {
+        ...formValue,
+        createdDate: createdDate ? new Date(createdDate).toISOString() : undefined
+      }
+    })
+    comments.forEach((comment) =>
+      comment.commentId !== -1
+        ? updateCommentById({
+            commentId: comment.commentId,
+            commentRequest: { articleId, message: comment.message, ipAddress }
+          })
+        : addComment({ commentRequest: { articleId, message: comment.message, ipAddress } })
+    )
+
+    router.push({ name: 'home' })
     return
   }
 
   // create article
-  const { mutate } = useAddArticleMutate()
-  const articleCreateResponse = await mutate({
+  const articleCreateResponse = await addArticle({
     articleRequest: {
       title,
       imageUrl,
-      createdDate: createdDate ? createdDate.toString() : null,
+      createdDate: createdDate ? new Date(createdDate).toISOString() : null,
       description,
       authorName,
-      ipAddress: ip
+      ipAddress
     }
   })
-  // articleCreateResponse?.data?.articleId
+  if (
+    articleCreateResponse &&
+    articleCreateResponse.data &&
+    articleCreateResponse.data.addArticle
+  ) {
+    comments.forEach((comment) =>
+      addComment({
+        commentRequest: {
+          articleId: parseInt(articleCreateResponse.data!.addArticle.articleId.toString(), 10),
+          message: comment.message,
+          ipAddress
+        }
+      })
+    )
+  }
+
+  router.push({ name: 'home' })
 }
 
 function addNewComment() {
-  formData.value.comments = [...formData.value.comments, '']
+  formData.value.comments = [
+    ...formData.value.comments,
+    { commentId: -1, message: '', createdDate: new Date().toString() }
+  ]
 }
 
 onBeforeMount(() => {
-  if (mode === 'Update') {
-    const route = useRoute()
-    const articleId = parseInt(route.params.articleId.toString(), 10)
+  function filterComments(comments: Comment[]) {
+    return comments.filter((comment) => comment.message.trim() !== '')
+  }
 
+  if (mode === 'Update') {
+    const articleId = parseInt(route.params.articleId.toString(), 10)
     const { result } = useArticleByIdReadMoreQuery(articleId)
     watch(
       () => result.value?.articles[0],
       (articleData) => {
-        if (articleData)
+        if (articleData) {
+          const { __typename, isDeleted, ...articleValue } = articleData
           formData.value = {
-            ...articleData,
-            createdDate: new Date(articleData.createdDate),
-            comments: articleData.comments.map((comment) => comment.message)
+            ...articleValue,
+            comments: filterComments(articleData.comments),
+            createdDate: new Date(articleData.createdDate).toISOString().substring(0, 10)
           }
+        }
       }
     )
     //
@@ -170,7 +222,7 @@ onBeforeMount(() => {
         id="comment"
         name="comment"
         v-for="(_, index) in formData.comments"
-        v-model="formData.comments[index]"
+        v-model="formData.comments[index].message"
         :key="index"
         class="py-2 px-4 rounded"
         placeholder="as ชัยพงษ์"

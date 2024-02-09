@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import useArticleByIdReadMoreQuery from '@/composables/useArticleByIdReadMoreQuery'
 import LoadingIndicator from '@/components/LoadingIndicator.vue'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import dayjs from 'dayjs'
+import DeleteDialog from '@/components/DeleteDialog.vue'
 
 const route = useRoute()
 const articleId = parseInt(route.params.articleId.toString(), 10)
+
+const isDeleteModal = ref(false)
 
 const { result } = useArticleByIdReadMoreQuery(articleId)
 const article = computed(() => result.value?.articles[0])
@@ -14,9 +17,14 @@ const article = computed(() => result.value?.articles[0])
 function formatDate(date: string) {
   return dayjs(date).format('YYYY-MM-DD')
 }
+
+function toggleDeleteModal() {
+  isDeleteModal.value = !isDeleteModal.value
+}
 </script>
 
 <template>
+  <DeleteDialog v-model="isDeleteModal" />
   <div class="container mx-auto pt-7">
     <div v-if="article" class="w-full rounded-2xl overflow-hidden">
       <div class="bg-content-header p-3 text-xl font-semibold">{{ article.title }}</div>
@@ -40,11 +48,12 @@ function formatDate(date: string) {
                 Edit
               </div>
             </RouterLink>
-            <div
+            <button
+              @click="toggleDeleteModal"
               class="bg-danger w-40 py-3 rounded-lg text-white text-xl font-extrabold text-center"
             >
               Delete
-            </div>
+            </button>
           </div>
         </div>
       </div>

@@ -19,6 +19,12 @@ const router = createRouter({
       name: 'article-edit',
       props: { mode: 'Update' },
       component: () => import('../views/EditView.vue')
+    },
+    {
+      path: '/article/create',
+      name: 'article-create',
+      props: { mode: 'Create' },
+      component: () => import('../views/EditView.vue')
     }
     // {
     //   path: '/about',

@@ -3,10 +3,7 @@ import gql from 'graphql-tag'
 import type { Article } from './type'
 
 type QueryArticleById = {
-  articles: Pick<
-    Article,
-    'title' | 'imageUrl' | 'description' | 'createdDate' | 'authorName' | 'comments'
-  >[]
+  articles: Article[]
 }
 
 export default function (articleId: number) {

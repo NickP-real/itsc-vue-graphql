@@ -18,13 +18,10 @@ export type Article = {
 
 type IpAddress = string
 
-export type ArticleRequest = {
-  articleRequest: Pick<Article, 'title' | 'authorName' | 'description' | 'imageUrl'> & {
-    createdDate: string | null
-    ipAddress: IpAddress
-  }
+export type ArticleRequest = Pick<Article, 'title' | 'authorName' | 'description' | 'imageUrl'> & {
+  createdDate: string | null
+  ipAddress: IpAddress
 }
 
-export type CommentRequest = {
-  commentRequest: Pick<Article, 'articleId'> & Pick<Comment, 'message'> & { ipAddress: IpAddress }
-}
+export type CommentRequest = Pick<Article, 'articleId'> &
+  Pick<Comment, 'message'> & { ipAddress: IpAddress }
