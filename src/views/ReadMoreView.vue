@@ -2,17 +2,21 @@
 import useArticleByIdReadMoreQuery from '@/composables/useArticleByIdReadMoreQuery'
 import LoadingIndicator from '@/components/LoadingIndicator.vue'
 import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import DeleteDialog from '@/components/DeleteDialog.vue'
+import useDeleteArticleByIdMutate from '@/composables/useDeleteArticleByIdMutate'
 
 const route = useRoute()
+const router = useRouter()
 const articleId = parseInt(route.params.articleId.toString(), 10)
 
 const isDeleteModal = ref(false)
 
 const { result } = useArticleByIdReadMoreQuery(articleId)
 const article = computed(() => result.value?.articles[0])
+
+const { mutate, onDone } = useDeleteArticleByIdMutate()
 
 function formatDate(date: string) {
   return dayjs(date).format('YYYY-MM-DD')
@@ -21,14 +25,20 @@ function formatDate(date: string) {
 function toggleDeleteModal() {
   isDeleteModal.value = !isDeleteModal.value
 }
+
+function onDelete() {
+  mutate({ deleteArticleId: articleId })
+}
+
+onDone(() => router.go(-1))
 </script>
 
 <template>
-  <DeleteDialog v-model="isDeleteModal" />
+  <DeleteDialog v-model="isDeleteModal" @on-click-delete="onDelete" />
   <div class="container mx-auto pt-7">
     <div v-if="article" class="w-full rounded-2xl overflow-hidden">
       <div class="bg-content-header p-3 text-xl font-semibold">{{ article.title }}</div>
-      <div class="bg-content-body px-5 py-4">
+      <div class="bg-content-body px-5 py-4 rounded-bl-2xl rounded-br-2">
         <div class="flex justify-center mb-8">
           <img :src="article.imageUrl" alt="Article's Image" class="rounded-2xl" />
         </div>

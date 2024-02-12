@@ -1,6 +1,6 @@
 # itsc-article-workshop
 
-This work is not finished yet, I am lazy to do now lol
+This work is finished, but no form validation and thing else
 
 ## Dependencies
 

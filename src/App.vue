@@ -32,7 +32,7 @@ import { RouterView, RouterLink } from 'vue-router'
       </RouterLink>
     </div>
   </nav>
-  <main class="bg-wall h-[calc(100dvh-5rem)]">
+  <main class="bg-wall min-h-[calc(100dvh-5rem)]">
     <RouterView />
   </main>
 </template>

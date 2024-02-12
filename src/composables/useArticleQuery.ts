@@ -7,22 +7,26 @@ type QueryArticle = {
 }
 
 export default function () {
-  return useQuery<QueryArticle>(gql`
-    query GetArticles {
-      articles(where: { isDeleted: { eq: false } }) {
-        articleId
-        title
-        description
-        authorName
-        createdDate
-        imageUrl
-        isDeleted
-        comments {
-          commentId
-          message
+  return useQuery<QueryArticle>(
+    gql`
+      query GetArticles {
+        articles(where: { isDeleted: { eq: false } }) {
+          articleId
+          title
+          description
+          authorName
           createdDate
+          imageUrl
+          isDeleted
+          comments {
+            commentId
+            message
+            createdDate
+          }
         }
       }
-    }
-  `)
+    `,
+    {},
+    { fetchPolicy: 'no-cache' }
+  )
 }
